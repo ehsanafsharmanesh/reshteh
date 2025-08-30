@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فرم پیش‌نویس انتخاب رشته هوشمند</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.rtl.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            font-family: Tahoma, Arial, sans-serif;
+            background-color: #f7f7f7;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .print-header {
+            display: none;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-section, .print-section * {
+                visibility: visible;
+            }
+            .print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+            }
+            .print-header {
+                display: block;
+                text-align: center;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+                border-bottom: 2px solid #000;
+            }
+            .print-header h1 {
+                font-size: 24px;
+                margin-bottom: 5px;
+                color: #000;
+            }
+            .print-header h2 {
+                font-size: 18px;
+                margin-bottom: 5px;
+                color: #000;
+            }
+            .print-header p {
+                font-size: 14px;
+                margin: 3px 0;
+                color: #000;
+            }
+            .buttons {
+                display: none !important;
+            }
+            .actions-column {
+                display: none !important;
+            }
+            input, select {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                height: auto !important;
+                text-align: center;
+            }
+            .field-period {
+                display: block;
+                width: 100%;
+                text-align: center;
+            }
+            /* مخفی کردن placeholderها در پرینت */
+            ::-webkit-input-placeholder {
+                color: transparent !important;
+            }
+            :-moz-placeholder {
+                color: transparent !important;
+            }
+            ::-moz-placeholder {
+                color: transparent !important;
+            }
+            :-ms-input-placeholder {
+                color: transparent !important;
+            }
+            input:empty::before {
+                content: none !important;
+            }
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            color: #3f51b5;
+            margin-bottom: 5px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .header h2 {
+            color: #666;
+            font-size: 16px;
+            font-weight: normal;
+        }
+        .contact-info {
+            background-color: #e3f2fd;
+            padding: 8px;
+            border-radius: 5px;
+            margin: 8px 0;
+            font-size: 13px;
+        }
+        .instructions {
+            background-color: #e3f2fd;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .instructions h4 {
+            margin-bottom: 8px;
+            color: #3f51b5;
+        }
+        .table-container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 6px;
+            text-align: center;
+            height: 35px;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:nth-child(odd) {
+            background-color: #fff;
+        }
+        tr:hover {
+            background-color: #f0f7ff;
+        }
+        .dragging {
+            background-color: #d1e7fd !important;
+            opacity: 0.7;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .btn {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        .btn-info {
+            background-color: #17a2b8;
+        }
+        .btn-info:hover {
+            background-color: #138496;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        .row-number {
+            width: 40px;
+            text-align: center;
+            font-weight: bold;
+            background-color: #f0f0f0;
+        }
+        .ui-state-highlight {
+            background-color: #ffffcc !important;
+            height: 35px;
+        }
+        /* رنگ‌بندی دوره‌های تحصیلی */
+        .doreh-روزانه {
+            background-color: #000000 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+        .doreh-نوبت-دوم {
+            background-color: #009900 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+        .doreh-پردیس-سراسری {
+            background-color: #cc0000 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+        .doreh-آزاد {
+            background-color: #cc0000 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+        .doreh-پیام-نور {
+            background-color: #663300 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+        .doreh-غیرانتفاعی {
+            background-color: #663300 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+        .doreh-مجازی {
+            background-color: #ffffff !important;
+            color: #000 !important;
+            font-weight: bold;
+        }
+        /* استایل برای سلول‌های editable */
+        input[type="text"], select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 4px;
+            font-size: 13px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            text-align: center;
+        }
+        input[type="text"]:focus, select:focus {
+            border-color: #007bff;
+            outline: none;
+            background: #eef6ff;
+        }
+        .field-period {
+            max-width: 100px;
+        }
+        .actions-column {
+            width: 80px;
+        }
+        .semester-cell {
+            background-color: white;
+        }
+        .semester-cell:focus {
+            background-color: #eef6ff;
+        }
+        .logo-container {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .logo-placeholder {
+            display: inline-block;
+            width: 100px;
+            height: 60px;
+            background-color: #f0f0f0;
+            border: 1px dashed #ccc;
+            line-height: 60px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- هدر مخصوص پرینت -->
+        <div class="print-header">
+            <h1>فرم پیش‌نویس انتخاب رشته هوشمند</h1>
+            <h2>احسان افشارمنش مشاور تحصیلی و روانشناس بالینی</h2>
+            <p>رزرو وقت از طریق پیامک به 09131467038</p>
+            <p>آشنایی بیشتر با مشاور: https://zil.ink/ehsan.afshar</p>
+            <div class="logo-container">
+                <div class="logo-placeholder">لوگو</div>
+            </div>
+        </div>
+
+        <!-- هدر اصلی -->
+        <div class="header">
+            <h1>فرم پیش‌نویس انتخاب رشته هوشمند</h1>
+            <h2>احسان افشارمنش مشاور تحصیلی و روانشناس بالینی</h2>
+            <div class="contact-info">
+                <p>رزرو وقت از طریق پیامک به 09131467038</p>
+                <p>آشنایی بیشتر با مشاور: <a href="https://zil.ink/ehsan.afshar" target="_blank">https://zil.ink/ehsan.afshar</a></p>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h4>راهنما:</h4>
+            <p>برای جابجایی ردیف‌ها، روی شماره ردیف کلیک کرده و نگه دارید و سپس ردیف را به موقعیت جدید بکشید.</p>
+            <p>در ستون "دوره تحصیلی" از حروف اختصاری استفاده کنید: ر=روزانه, ن/ش=نوبت دوم, پ/پر=پردیس, ا=آزاد, پی=پیام نور, غ=غیرانتفاعی, م=مجازی</p>
+        </div>
+
+        <!-- دکمه های عملیات -->
+        <div class="buttons">
+            <button id="addRowBtn" class="btn btn-success">➕ افزودن ردیف</button>
+            <button id="exportBtn" class="btn btn-info">📥 خروجی اکسل</button>
+            <button id="importBtn" class="btn btn-secondary">📤 ورودی از اکسل</button>
+            <button id="printBtn" class="btn">🖨 پرینت</button>
+            <input type="file" id="fileInput" style="display: none;" accept=".xlsx, .xls">
+        </div>
+
+        <div class="table-container print-section">
+            <table id="mainTable">
+                <thead>
+                    <tr>
+                        <th class="row-number">ردیف</th>
+                        <th>نام رشته</th>
+                        <th>شهر دانشگاه</th>
+                        <th>نیمسال</th>
+                        <th>نام دانشگاه</th>
+                        <th>دوره تحصیلی</th>
+                        <th>کد رشته محل</th>
+                        <th class="actions-column">پاک کردن ردیف</th>
+                        <th class="actions-column">حذف ردیف</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- ردیف ها توسط جاوااسکریپت تولید می‌شوند -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Initialize jsPDF
+        window.jsPDF = window.jspdf.jsPDF;
+
+        $(document).ready(function() {
+            const dorehMap = {
+                'ر': {text: 'روزانه', className: 'doreh-روزانه'},
+                'ن': {text: 'نوبت دوم', className: 'doreh-نوبت-دوم'},
+                'ش': {text: 'نوبت دوم', className: 'doreh-نوبت-دوم'},
+                'پر': {text: 'پردیس سراسری', className: 'doreh-پردیس-سراسری'},
+                'ا': {text: 'آزاد', className: 'doreh-آزاد'},
+                'پی': {text: 'پیام نور', className: 'doreh-پیام-نور'},
+                'غ': {text: 'غیرانتفاعی', className: 'doreh-غیرانتفاعی'},
+                'م': {text: 'مجازی', className: 'doreh-مجازی'}
+            };
+
+            // ایجاد ردیف‌های اولیه (11 ردیف)
+            function initializeTable() {
+                // اضافه کردن 11 ردیف اولیه
+                for (let i = 0; i < 10; i++) {
+                    addNewRow();
+                }
+                
+                // فعال کردن قابلیت درگ و دراپ
+                enableDragAndDrop();
+                
+                // اضافه کردن event listener برای سلول‌های دوره تحصیلی
+                enableCourseTypeAutoComplete();
+                
+                // ذخیره خودکار هنگام تغییر داده
+                enableAutoSave();
+                
+                // بارگذاری داده‌های ذخیره شده
+                loadSavedData();
+            }
+            
+            // افزودن ردیف جدید
+            function addNewRow() {
+                const rowCount = $('#tableBody tr').length;
+                const rowNumber = rowCount + 1;
+                
+                const newRow = $(`
+                    <tr class="resizable-row">
+                        <td class="row-number">${rowNumber}</td>
+                        <td><input type="text" class="field-major form-control" placeholder="نام رشته" autocomplete="off" /></td>
+                        <td><input type="text" class="field-city form-control" placeholder="شهر دانشگاه" autocomplete="off" /></td>
+                        <td>
+                            <select class="field-semester form-control semester-cell">
+                                <option value="" selected>---</option>
+                                <option value="اول">اول</option>
+                                <option value="دوم">دوم</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="field-university form-control" placeholder="نام دانشگاه" autocomplete="off" /></td>
+                        <td><input type="text" class="field-period form-control" maxlength="2" autocomplete="off" placeholder="ر، ن، پ، ا، پی، غ، م" /></td>
+                        <td><input type="text" class="field-code form-control" placeholder="کد رشته محل" autocomplete="off" /></td>
+                        <td class="actions-column"><button class="btn btn-sm btn-warning clear-row">🧹</button></td>
+                        <td class="actions-column"><button class="btn btn-sm btn-danger remove-row">🗑️</button></td>
+                    </tr>
+                `);
+                
+                $('#tableBody').append(newRow);
+                
+                // به روز رسانی شماره ردیف‌ها
+                updateRowNumbers();
+                
+                return newRow;
+            }
+            
+            // به روز رسانی شماره ردیف‌ها
+            function updateRowNumbers() {
+                $('#tableBody tr').each(function(index) {
+                    $(this).find('.row-number').text(index + 1);
+                });
+            }
+            
+            // فعال کردن قابلیت درگ و دراپ برای ردیف‌ها
+            function enableDragAndDrop() {
+                $('#tableBody').sortable({
+                    items: "tr",
+                    cursor: "move",
+                    opacity: 0.7,
+                    start: function(event, ui) {
+                        ui.item.addClass('dragging');
+                    },
+                    stop: function(event, ui) {
+                        ui.item.removeClass('dragging');
+                        // شماره ردیف‌ها تغییر نمی‌کند
+                        updateRowNumbers();
+                        autoSave();
+                    },
+                    placeholder: "ui-state-highlight",
+                    forcePlaceholderSize: true
+                }).disableSelection();
+            }
+            
+            // فعال کردن تکمیل خودکار برای نوع دوره تحصیلی
+            function enableCourseTypeAutoComplete() {
+                $(document).on('input', '.field-period', function() {
+                    const value = $(this).val().trim();
+                    const cell = $(this).parent();
+                    
+                    // پاک کردن کلاس های قدیمی
+                    cell.removeClass('doreh-روزانه doreh-نوبت-دوم doreh-پردیس-سراسری doreh-آزاد doreh-پیام-نور doreh-غیرانتفاعی doreh-مجازی');
+                    
+                    if (value in dorehMap) {
+                        $(this).val(dorehMap[value].text);
+                        cell.addClass(dorehMap[value].className);
+                    } else {
+                        // اگر متن وارد شده کامل است
+                        let found = false;
+                        $.each(dorehMap, function(key, item) {
+                            if (item.text === value) {
+                                cell.addClass(item.className);
+                                found = true;
+                                return false;
+                            }
+                        });
+                        
+                        // اگر پیدا نشد، کلاس‌ها را پاک کن
+                        if (!found && value === '') {
+                            cell.removeClass('doreh-روزانه doreh-نوبت-دوم doreh-پردیس-سراسری doreh-آزاد doreh-پیام-نور doreh-غیرانتفاعی doreh-مجازی');
+                        }
+                    }
+                    
+                    // ذخیره خودکار
+                    autoSave();
+                });
+
+                // امکان پاک کردن با دکمه Delete
+                $(document).on('keydown', '.field-period', function(e) {
+                    if (e.key === 'Delete' || e.key === 'Backspace') {
+                        const value = $(this).val();
+                        // اگر فقط ۱ یا ۲ کاراکتر باقی مانده، کل محتوا را پاک کن
+                        if (value.length <= 4) {
+                            $(this).val('');
+                            $(this).parent().removeClass('doreh-روزانه doreh-نوبت-دوم doreh-پردیس-سراسری doreh-آزاد doreh-پیام-نور doreh-غیرانتفاعی doreh-مجازی');
+                            autoSave();
+                        }
+                    }
+                });
+            }
+            
+            // فعال کردن ذخیره خودکار
+            function enableAutoSave() {
+                $(document).on('input change', 'input, select', function() {
+                    // تاخیر برای جلوگیری از ذخیره‌سازی بیش از حد
+                    clearTimeout(window.autoSaveTimeout);
+                    window.autoSaveTimeout = setTimeout(autoSave, 500);
+                });
+            }
+            
+            // پاک کردن محتوای ردیف
+            $(document).on('click', '.clear-row', function() {
+                const row = $(this).closest('tr');
+                row.find('input[type="text"]').val('');
+                row.find('.field-semester').val('');
+                row.find('.field-period').parent().removeClass('doreh-روزانه doreh-نوبت-دوم doreh-پردیس-سراسری doreh-آزاد doreh-پیام-نور doreh-غیرانتفاعی doreh-مجازی');
+                autoSave();
+            });
+            
+            // حذف ردیف
+            $(document).on('click', '.remove-row', function() {
+                if ($('#tableBody tr').length > 1) {
+                    $(this).closest('tr').remove();
+                    updateRowNumbers();
+                    autoSave();
+                } else {
+                    alert("حداقل یک ردیف باید وجود داشته باشد.");
+                }
+            });
+            
+            // افزودن ردیف جدید با دکمه
+            $('#addRowBtn').on('click', function() {
+                addNewRow();
+                autoSave();
+            });
+            
+            // ذخیره خودکار داده‌ها
+            function autoSave() {
+                let data = getAllData();
+                localStorage.setItem('formData', JSON.stringify(data));
+            }
+            
+            // دریافت تمام داده‌ها
+            function getAllData() {
+                let data = [];
+                
+                $('#tableBody tr').each(function() {
+                    let rowData = [];
+                    
+                    // نام رشته
+                    rowData.push($(this).find('.field-major').val() || '');
+                    
+                    // شهر دانشگاه
+                    rowData.push($(this).find('.field-city').val() || '');
+                    
+                    // نیمسال
+                    rowData.push($(this).find('.field-semester').val() || '');
+                    
+                    // نام دانشگاه
+                    rowData.push($(this).find('.field-university').val() || '');
+                    
+                    // دوره تحصیلی
+                    rowData.push($(this).find('.field-period').val() || '');
+                    
+                    // کد رشته محل
+                    rowData.push($(this).find('.field-code').val() || '');
+                    
+                    data.push(rowData);
+                });
+                
+                return data;
+            }
+            
+            // بارگذاری داده‌های ذخیره شده
+            function loadSavedData() {
+                const savedData = localStorage.getItem('formData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    
+                    // حذف ردیف‌های اولیه
+                    $('#tableBody').empty();
+                    
+                    // ایجاد ردیف‌ها بر اساس داده‌های ذخیره شده
+                    data.forEach((rowData, index) => {
+                        const newRow = addNewRow();
+                        
+                        // پر کردن داده‌ها
+                        newRow.find('.field-major').val(rowData[0] || '');
+                        newRow.find('.field-city').val(rowData[1] || '');
+                        newRow.find('.field-semester').val(rowData[2] || '');
+                        newRow.find('.field-university').val(rowData[3] || '');
+                        
+                        // دوره تحصیلی
+                        const periodValue = rowData[4] || '';
+                        newRow.find('.field-period').val(periodValue);
+                        
+                        // کد رشته محل
+                        newRow.find('.field-code').val(rowData[5] || '');
+                        
+                        // اعمال رنگ‌بندی
+                        if (periodValue) {
+                            let found = false;
+                            $.each(dorehMap, function(key, item) {
+                                if (item.text === periodValue) {
+                                    newRow.find('.field-period').parent().addClass(item.className);
+                                    found = true;
+                                    return false;
+                                }
+                            });
+                            
+                            // اگر مقدار کوتاه وارد شده
+                            if (!found) {
+                                for (const [key, value] of Object.entries(dorehMap)) {
+                                    if (periodValue.includes(key)) {
+                                        newRow.find('.field-period').val(value.text);
+                                        newRow.find('.field-period').parent().addClass(value.className);
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // به روز رسانی شماره ردیف‌ها
+                    updateRowNumbers();
+                }
+            }
+            
+            // خروجی به اکسل
+            $('#exportBtn').on('click', function() {
+                // ایجاد workbook و worksheet
+                const wb = XLSX.utils.book_new();
+                
+                // ایجاد داده برای اکسل
+                const excelData = [];
+                
+                // اضافه کردن هدر برای اکسل (5 سطر)
+                excelData.push(['فرم پیش‌نویس انتخاب رشته هوشمند']);
+                excelData.push(['احسان افشارمنش مشاور تحصیلی و روانشناس بالینی']);
+                excelData.push(['رزرو وقت از طریق پیامک به 09131467038']);
+                excelData.push(['آشنایی بیشتر با مشاور: https://zil.ink/ehsan.afshar']);
+                excelData.push([]);
+                
+                // اضافه کردن عنوان ستون‌ها
+                const headers = ['ردیف', 'دوره تحصیلی', 'کد رشته محل', 'نام رشته', 'نام دانشگاه', 'شهر دانشگاه', 'نیمسال'];
+                excelData.push(headers);
+                
+                // اضافه کردن داده‌های ردیف‌ها
+                $('#tableBody tr').each(function(index) {
+                    // فقط اگر نام رشته پر شده باشد
+                    const majorValue = $(this).find('.field-major').val() || '';
+                    if (majorValue.trim() !== '') {
+                        let rowData = [];
+                        
+                        // شماره ردیف
+                        rowData.push(index + 1);
+                        
+                        // دوره تحصیلی
+                        rowData.push($(this).find('.field-period').val() || '');
+                        
+                        // کد رشته محل
+                        rowData.push($(this).find('.field-code').val() || '');
+                        
+                        // نام رشته
+                        rowData.push(majorValue);
+                        
+                        // نام دانشگاه
+                        rowData.push($(this).find('.field-university').val() || '');
+                        
+                        // شهر دانشگاه
+                        rowData.push($(this).find('.field-city').val() || '');
+                        
+                        // نیمسال
+                        rowData.push($(this).find('.field-semester').val() || '');
+                        
+                        excelData.push(rowData);
+                    }
+                });
+                
+                // اضافه کردن ردیف‌های خالی تا 150 ردیف
+                const currentRows = excelData.length - 6; // 6 سطر برای هدر و عنوان
+                for (let i = currentRows; i < 150; i++) {
+                    excelData.push([i + 1, '', '', '', '', '', '']);
+                }
+                
+                const ws = XLSX.utils.aoa_to_sheet(excelData);
+                
+                // ادغام سلول‌ها برای هدر
+                ws['!merges'] = [
+                    {s: {r: 0, c: 0}, e: {r: 0, c: 6}}, // سطر اول
+                    {s: {r: 1, c: 0}, e: {r: 1, c: 6}}, // سطر دوم
+                    {s: {r: 2, c: 0}, e: {r: 2, c: 6}}, // سطر سوم
+                    {s: {r: 3, c: 0}, e: {r: 3, c: 6}}  // سطر چهارم
+                ];
+                
+                // تنظیم استایل برای اکسل
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cell_address = {c: C, r: R};
+                        const cell_ref = XLSX.utils.encode_cell(cell_address);
+                        
+                        if (!ws[cell_ref]) continue;
+                        
+                        // تنظیم مرزها برای همه سلول‌ها
+                        ws[cell_ref].s = {
+                            border: {
+                                top: {style: "thin", color: {rgb: "000000"}},
+                                bottom: {style: "thin", color: {rgb: "000000"}},
+                                left: {style: "thin", color: {rgb: "000000"}},
+                                right: {style: "thin", color: {rgb: "000000"}}
+                            },
+                            alignment: {
+                                horizontal: "center",
+                                vertical: "center"
+                            }
+                        };
+                        
+                        // عنوان‌ها (سطر 5)
+                        if (R === 5) {
+                            ws[cell_ref].s.fill = {fgColor: {rgb: "3F51B5"}};
+                            ws[cell_ref].s.font = {bold: true, color: {rgb: "FFFFFF"}};
+                        }
+                        // هدرها (سطر 0-3)
+                        else if (R >= 0 && R <= 3) {
+                            ws[cell_ref].s.font = {bold: true, size: R === 0 ? 16 : 12};
+                            ws[cell_ref].s.alignment = {horizontal: "center", vertical: "center"};
+                        }
+                        // داده‌ها
+                        else if (R >= 6) {
+                            // رنگ‌بندی دوره‌های تحصیلی
+                            if (C === 1 && ws[cell_ref] && ws[cell_ref].v) {
+                                const value = ws[cell_ref].v;
+                                if (value.includes('روزانه')) {
+                                    ws[cell_ref].s.fill = {fgColor: {rgb: "000000"}};
+                                    ws[cell_ref].s.font = {color: {rgb: "FFFFFF"}, bold: true};
+                                } else if (value.includes('نوبت دوم')) {
+                                    ws[cell_ref].s.fill = {fgColor: {rgb: "009900"}};
+                                    ws[cell_ref].s.font = {color: {rgb: "FFFFFF"}, bold: true};
+                                } else if (value.includes('پردیس') || value.includes('آزاد')) {
+                                    ws[cell_ref].s.fill = {fgColor: {rgb: "CC0000"}};
+                                    ws[cell_ref].s.font = {color: {rgb: "FFFFFF"}, bold: true};
+                                } else if (value.includes('پیام نور') || value.includes('غیرانتفاعی')) {
+                                    ws[cell_ref].s.fill = {fgColor: {rgb: "663300"}};
+                                    ws[cell_ref].s.font = {color: {rgb: "FFFFFF"}, bold: true};
+                                } else if (value.includes('مجازی')) {
+                                    ws[cell_ref].s.fill = {fgColor: {rgb: "FFFFFF"}};
+                                    ws[cell_ref].s.font = {color: {rgb: "000000"}, bold: true};
+                                }
+                            }
+                            
+                            // رنگ‌بندی متناوب برای سطرها
+                            if (R % 2 === 0) {
+                                if (!ws[cell_ref].s.fill) {
+                                    ws[cell_ref].s.fill = {fgColor: {rgb: "F0F0F0"}};
+                                }
+                            } else {
+                                if (!ws[cell_ref].s.fill) {
+                                    ws[cell_ref].s.fill = {fgColor: {rgb: "FFFFFF"}};
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // تنظیم عرض ستون‌ها
+                ws['!cols'] = [
+                    {wch: 6},  // ردیف
+                    {wch: 15}, // دوره تحصیلی
+                    {wch: 12}, // کد رشته محل
+                    {wch: 30}, // نام رشته
+                    {wch: 30}, // نام دانشگاه
+                    {wch: 15}, // شهر دانشگاه
+                    {wch: 10}  // نیمسال
+                ];
+                
+                XLSX.utils.book_append_sheet(wb, ws, "انتخاب رشته");
+                
+                // تولید فایل اکسل و دانلود
+                XLSX.writeFile(wb, "انتخاب_رشته.xlsx");
+            });
+            
+            // ورودی از اکسل
+            $('#importBtn').on('click', function() {
+                $('#fileInput').click();
+            });
+            
+            $('#fileInput').on('change', function(e) {
+                let file = e.target.files[0];
+                if (!file) return;
+                
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    let data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // خواندن اولین sheet
+                    let worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    let excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                    
+                    // پیدا کردن سطر شروع داده‌ها (بعد از هدر)
+                    let startRow = 0;
+                    for (let i = 0; i < excelData.length; i++) {
+                        if (excelData[i] && excelData[i][0] === 'ردیف') {
+                            startRow = i + 1;
+                            break;
+                        }
+                    }
+                    
+                    // استخراج داده‌ها
+                    let importedData = [];
+                    for (let i = startRow; i < excelData.length; i++) {
+                        if (excelData[i].length > 1 && excelData[i][0] !== '') {
+                            importedData.push([
+                                excelData[i][3] || '', // نام رشته
+                                excelData[i][5] || '', // شهر دانشگاه
+                                excelData[i][6] || 'اول', // نیمسال
+                                excelData[i][4] || '', // نام دانشگاه
+                                excelData[i][1] || '', // دوره تحصیلی
+                                excelData[i][2] || ''  // کد رشته محل
+                            ]);
+                        }
+                    }
+                    
+                    // حذف ردیف‌های موجود
+                    $('#tableBody').empty();
+                    
+                    // ایجاد ردیف‌های جدید بر اساس داده‌های اکسل
+                    importedData.forEach((rowData, index) => {
+                        const newRow = addNewRow();
+                        
+                        // پر کردن داده‌ها
+                        newRow.find('.field-major').val(rowData[0] || '');
+                        newRow.find('.field-city').val(rowData[1] || '');
+                        newRow.find('.field-semester').val(rowData[2] || 'اول');
+                        newRow.find('.field-university').val(rowData[3] || '');
+                        
+                        // دوره تحصیلی
+                        const periodValue = rowData[4] || '';
+                        newRow.find('.field-period').val(periodValue);
+                        
+                        // کد رشته محل
+                        newRow.find('.field-code').val(rowData[5] || '');
+                        
+                        // اعمال رنگ‌بندی
+                        if (periodValue) {
+                            let found = false;
+                            $.each(dorehMap, function(key, item) {
+                                if (item.text === periodValue) {
+                                    newRow.find('.field-period').parent().addClass(item.className);
+                                    found = true;
+                                    return false;
+                                }
+                            });
+                            
+                            // اگر مقدار کوتاه وارد شده
+                            if (!found) {
+                                for (const [key, value] of Object.entries(dorehMap)) {
+                                    if (periodValue.includes(key)) {
+                                        newRow.find('.field-period').val(value.text);
+                                        newRow.find('.field-period').parent().addClass(value.className);
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // ذخیره داده‌ها
+                    autoSave();
+                    
+                    // ریست کردن input فایل
+                    $('#fileInput').val('');
+                };
+                reader.readAsArrayBuffer(file);
+            });
+            
+            // پرینت
+            $('#printBtn').on('click', function() {
+                window.print();
+            });
+            
+            // راه‌اندازی اولیه
+            initializeTable();
+        });
+    </script>
+</body>
+</html>
