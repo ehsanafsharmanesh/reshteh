@@ -309,6 +309,40 @@
             text-align: center;
             color: #666;
         }
+/* تنظیمات فشرده‌تر برای صفحه */
+body {
+    padding: 12px;
+    font-size: 13px;
+}
+.header {
+    padding: 10px;
+    margin-bottom: 15px;
+}
+.header h1 {
+    font-size: 20px;
+}
+.table-container {
+    padding: 10px;
+}
+th, td {
+    padding: 4px;
+    height: 32px;
+}
+.btn {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+.instructions, .contact-info {
+    padding: 8px;
+    font-size: 12px;
+}
+
+/* بهبود برای موبایل */
+.touch-dragging {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
         /* بهبود برای موبایل */
         .touch-dragging {
             transform: scale(1.02);
@@ -341,7 +375,7 @@
         </div>
 
         <div class="instructions">
-            <h4>راهنما:</h4>
+            <h4>راهنمای تکمیل فرم:</h4>
             <p>برای جابجایی ردیف‌ها، روی شماره ردیف کلیک کرده و نگه دارید و سپس ردیف را به موقعیت جدید بکشید.</p>
             <p>در ستون "دوره تحصیلی" از حروف اختصاری استفاده کنید: ر=روزانه, ن/ش=نوبت دوم, پ/پر=پردیس, ا=آزاد, پی=پیام نور, غ=غیرانتفاعی, م=مجازی</p>
         </div>
@@ -388,6 +422,7 @@
                 'ش': {text: 'نوبت دوم', className: 'doreh-نوبت-دوم'},
                 'پر': {text: 'پردیس سراسری', className: 'doreh-پردیس-سراسری'},
                 'ا': {text: 'آزاد', className: 'doreh-آزاد'},
+                 'آ': {text: 'آزاد', className: 'doreh-آزاد'},
                 'پی': {text: 'پیام نور', className: 'doreh-پیام-نور'},
                 'غ': {text: 'غیرانتفاعی', className: 'doreh-غیرانتفاعی'},
                 'م': {text: 'مجازی', className: 'doreh-مجازی'}
@@ -667,55 +702,51 @@
                 }
             }
             
-            // خروجی به اکسل
+            // خروجی به اکسل - نسخه بهبود یافته
             $('#exportBtn').on('click', function() {
                 // ایجاد workbook و worksheet
                 const wb = XLSX.utils.book_new();
                 
-                // ایجاد داده برای اکسل
+                // ایجاد داده برای اکسل - شامل تمام ستون‌ها
                 const excelData = [];
                 
-                // اضافه کردن هدر برای اکسل (5 سطر)
+                // اضافه کردن هدر برای اکسل
                 excelData.push(['فرم پیش‌نویس انتخاب رشته هوشمند']);
                 excelData.push(['احسان افشارمنش مشاور تحصیلی و روانشناس بالینی']);
                 excelData.push(['رزرو وقت از طریق پیامک به 09131467038']);
                 excelData.push(['آشنایی بیشتر با مشاور: https://zil.ink/ehsan.afshar']);
                 excelData.push([]);
                 
-                // اضافه کردن عنوان ستون‌ها
-                const headers = ['ردیف', 'دوره تحصیلی', 'کد رشته محل', 'نام رشته', 'نام دانشگاه', 'شهر دانشگاه', 'نیمسال'];
+                // اضافه کردن عنوان ستون‌ها (همه ستون‌ها)
+                const headers = ['ردیف', 'نام رشته', 'شهر دانشگاه', 'نیمسال', 'نام دانشگاه', 'دوره تحصیلی', 'کد رشته محل'];
                 excelData.push(headers);
                 
-                // اضافه کردن داده‌های ردیف‌ها
+                // اضافه کردن داده‌های ردیف‌ها (همه داده‌ها)
                 $('#tableBody tr').each(function(index) {
-                    // فقط اگر نام رشته پر شده باشد
-                    const majorValue = $(this).find('.field-major').val() || '';
-                    if (majorValue.trim() !== '') {
-                        let rowData = [];
-                        
-                        // شماره ردیف
-                        rowData.push(index + 1);
-                        
-                        // دوره تحصیلی
-                        rowData.push($(this).find('.field-period').val() || '');
-                        
-                        // کد رشته محل
-                        rowData.push($(this).find('.field-code').val() || '');
-                        
-                        // نام رشته
-                        rowData.push(majorValue);
-                        
-                        // نام دانشگاه
-                        rowData.push($(this).find('.field-university').val() || '');
-                        
-                        // شهر دانشگاه
-                        rowData.push($(this).find('.field-city').val() || '');
-                        
-                        // نیمسال
-                        rowData.push($(this).find('.field-semester').val() || '');
-                        
-                        excelData.push(rowData);
-                    }
+                    let rowData = [];
+                    
+                    // شماره ردیف
+                    rowData.push(index + 1);
+                    
+                    // نام رشته
+                    rowData.push($(this).find('.field-major').val() || '');
+                    
+                    // شهر دانشگاه
+                    rowData.push($(this).find('.field-city').val() || '');
+                    
+                    // نیمسال
+                    rowData.push($(this).find('.field-semester').val() || '');
+                    
+                    // نام دانشگاه
+                    rowData.push($(this).find('.field-university').val() || '');
+                    
+                    // دوره تحصیلی
+                    rowData.push($(this).find('.field-period').val() || '');
+                    
+                    // کد رشته محل
+                    rowData.push($(this).find('.field-code').val() || '');
+                    
+                    excelData.push(rowData);
                 });
                 
                 // اضافه کردن ردیف‌های خالی تا 150 ردیف
@@ -770,7 +801,7 @@
                         // داده‌ها
                         else if (R >= 6) {
                             // رنگ‌بندی دوره‌های تحصیلی
-                            if (C === 1 && ws[cell_ref] && ws[cell_ref].v) {
+                            if (C === 5 && ws[cell_ref] && ws[cell_ref].v) {
                                 const value = ws[cell_ref].v;
                                 if (value.includes('روزانه')) {
                                     ws[cell_ref].s.fill = {fgColor: {rgb: "000000"}};
@@ -807,12 +838,12 @@
                 // تنظیم عرض ستون‌ها
                 ws['!cols'] = [
                     {wch: 6},  // ردیف
-                    {wch: 15}, // دوره تحصیلی
-                    {wch: 12}, // کد رشته محل
                     {wch: 30}, // نام رشته
-                    {wch: 30}, // نام دانشگاه
                     {wch: 15}, // شهر دانشگاه
-                    {wch: 10}  // نیمسال
+                    {wch: 10}, // نیمسال
+                    {wch: 30}, // نام دانشگاه
+                    {wch: 15}, // دوره تحصیلی
+                    {wch: 12}  // کد رشته محل
                 ];
                 
                 XLSX.utils.book_append_sheet(wb, ws, "انتخاب رشته");
@@ -821,7 +852,7 @@
                 XLSX.writeFile(wb, "انتخاب_رشته.xlsx");
             });
             
-            // ورودی از اکسل
+            // ورودی از اکسل - نسخه بهبود یافته
             $('#importBtn').on('click', function() {
                 $('#fileInput').click();
             });
@@ -848,17 +879,17 @@
                         }
                     }
                     
-                    // استخراج داده‌ها
+                    // استخراج داده‌ها (همه ستون‌ها)
                     let importedData = [];
                     for (let i = startRow; i < excelData.length; i++) {
                         if (excelData[i].length > 1 && excelData[i][0] !== '') {
                             importedData.push([
-                                excelData[i][3] || '', // نام رشته
-                                excelData[i][5] || '', // شهر دانشگاه
-                                excelData[i][6] || 'اول', // نیمسال
+                                excelData[i][1] || '', // نام رشته
+                                excelData[i][2] || '', // شهر دانشگاه
+                                excelData[i][3] || 'اول', // نیمسال
                                 excelData[i][4] || '', // نام دانشگاه
-                                excelData[i][1] || '', // دوره تحصیلی
-                                excelData[i][2] || ''  // کد رشته محل
+                                excelData[i][5] || '', // دوره تحصیلی
+                                excelData[i][6] || ''  // کد رشته محل
                             ]);
                         }
                     }
