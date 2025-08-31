@@ -226,6 +226,7 @@
             text-align: center;
             font-weight: bold;
             background-color: #f0f0f0;
+            cursor: move; /* تغییر حالت موس برای ردیف */
         }
         .ui-state-highlight {
             background-color: #ffffcc !important;
@@ -307,6 +308,12 @@
             line-height: 60px;
             text-align: center;
             color: #666;
+        }
+        /* بهبود برای موبایل */
+        .touch-dragging {
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
         }
     </style>
 </head>
@@ -448,22 +455,41 @@
             
             // فعال کردن قابلیت درگ و دراپ برای ردیف‌ها
             function enableDragAndDrop() {
+                // پشتیبانی از تاچ برای موبایل
+                let isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                
                 $('#tableBody').sortable({
                     items: "tr",
                     cursor: "move",
                     opacity: 0.7,
                     start: function(event, ui) {
                         ui.item.addClass('dragging');
+                        if (isTouchDevice) {
+                            ui.item.addClass('touch-dragging');
+                        }
                     },
                     stop: function(event, ui) {
                         ui.item.removeClass('dragging');
+                        if (isTouchDevice) {
+                            ui.item.removeClass('touch-dragging');
+                        }
                         // شماره ردیف‌ها تغییر نمی‌کند
                         updateRowNumbers();
                         autoSave();
                     },
                     placeholder: "ui-state-highlight",
-                    forcePlaceholderSize: true
+                    forcePlaceholderSize: true,
+                    // پشتیبانی بهتر از تاچ اسکرین
+                    tolerance: isTouchDevice ? "pointer" : "intersect",
+                    delay: isTouchDevice ? 150 : 0
                 }).disableSelection();
+                
+                // تغییر حالت موس هنگام hover روی ردیف
+                $('#tableBody').on('mouseenter', 'tr', function() {
+                    $(this).css('cursor', 'move');
+                }).on('mouseleave', 'tr', function() {
+                    $(this).css('cursor', 'auto');
+                });
             }
             
             // فعال کردن تکمیل خودکار برای نوع دوره تحصیلی
