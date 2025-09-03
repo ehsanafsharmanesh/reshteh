@@ -78,6 +78,22 @@
                 width: 100%;
                 text-align: center;
             }
+            @media print {
+    /* ... کدهای موجود ... */
+    
+    /* فقط برای پرینت: متن سفید برای دوره روزانه */
+    .doreh-روزانه,
+    .doreh-روزانه input {
+        color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    /* مطمئن شویم پس زمینه در پرینت مشکی می‌ماند */
+    .doreh-روزانه {
+        background-color: black !important;
+    }
+}
             /* مخفی کردن placeholderها در پرینت */
             ::-webkit-input-placeholder {
                 color: transparent !important;
@@ -959,4 +975,5 @@ th, td {
     </script>
 </body>
 </html>
+
 
