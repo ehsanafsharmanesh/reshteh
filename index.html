@@ -978,7 +978,12 @@ th, td {
                     excelData.push(rowData);
                 });
                 
-               
+                // اضافه کردن ردیف‌های خالی تا 150 ردیف
+                const currentRows = excelData.length - 6; // 6 سطر برای هدر و عنوان
+                for (let i = currentRows; i < 150; i++) {
+                    excelData.push([i + 1, '', '', '', '', '', '']);
+                }
+                
                 const ws = XLSX.utils.aoa_to_sheet(excelData);
                 
                 // ادغام سلول‌ها برای هدر
