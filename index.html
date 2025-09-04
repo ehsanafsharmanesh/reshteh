@@ -417,11 +417,11 @@ th, td {
         <!-- دکمه های عملیات -->
         <div class="buttons">
             <button id="addRowBtn" class="btn btn-success">➕ افزودن ردیف</button>
+            <button id="add30RowsBtn" class="btn btn-success">➕ افزودن ۳۰ ردیف</button>
+            <button id="clearAllRowsBtn" class="btn btn-danger">🗑️ پاک کردن همه ردیف‌ها</button>
             <button id="exportBtn" class="btn btn-info">📥 خروجی اکسل</button>
             <button id="importBtn" class="btn btn-secondary">📤 ورودی از اکسل</button>
             <button id="printBtn" class="btn">🖨 پرینت</button>
-            <button id="clearAllBtn" class="btn btn-danger">🗑️ پاک کردن همه ردیف‌ها</button>
-            <button id="addTo30Btn" class="btn btn-warning">➕ افزودن تا ۳۰ ردیف</button>
             <input type="file" id="fileInput" style="display: none;" accept=".xlsx, .xls">
         </div>
 
@@ -440,7 +440,7 @@ th, td {
                         <th>نام رشته</th>
                         <th>شهر دانشگاه</th>
                         <th>نیمسال</th>
-                        <th>نام رشته</th>
+                        <th>نام دانشگاه</th>
                         <th>دوره تحصیلی</th>
                         <th>کد رشته محل</th>
                         <th class="actions-column">پاک کردن ردیف</th>
@@ -492,35 +492,6 @@ th, td {
                 
                 // فعال کردن انتخاب چندگانه
                 enableMultiSelect();
-                
-                // اضافه کردن event listener برای دکمه‌های جدید
-                $('#clearAllBtn').on('click', clearAllRows);
-                $('#addTo30Btn').on('click', addRowsTo30);
-            }
-            
-            // پاک کردن همه ردیف‌ها
-            function clearAllRows() {
-                if (confirm('آیا از پاک کردن تمام ردیف‌ها مطمئن هستید؟')) {
-                    $('#tableBody').empty();
-                    // اضافه کردن یک ردیف خالی
-                    addNewRow();
-                    autoSave();
-                }
-            }
-            
-            // افزودن ردیف تا ۳۰ عدد
-            function addRowsTo30() {
-                const currentRowCount = $('#tableBody tr').length;
-                const rowsToAdd = 30 - currentRowCount;
-                
-                if (rowsToAdd > 0) {
-                    for (let i = 0; i < rowsToAdd; i++) {
-                        addNewRow();
-                    }
-                    autoSave();
-                } else {
-                    alert(`هم اکنون ${currentRowCount} ردیف وجود دارد که بیشتر یا مساوی ۳۰ ردیف است.`);
-                }
             }
             
             // فعال کردن انتخاب چندگانه
@@ -788,19 +759,6 @@ th, td {
                     // ذخیره خودکار
                     autoSave();
                 });
-
-                // امکان پاک کردن با دکمه Delete
-                $(document).on('keydown', '.field-period', function(e) {
-                    if (e.key === 'Delete' || e.key === 'Backspace') {
-                        const value = $(this).val();
-                        // اگر فقط ۱ یا ۲ کاراکتر باقی مانده، کل محتوا را پاک کن
-                        if (value.length <= 4) {
-                            $(this).val('');
-                            $(this).parent().removeClass('doreh-روزانه doreh-نوبت-دوم doreh-پردیس-سراسری doreh-آزاد doreh-پیام-نور doreh-غیرانتفاعی doreh-مجازی');
-                            autoSave();
-                        }
-                    }
-                });
             }
             
             // فعال کردن ذخیره خودکار
@@ -835,6 +793,24 @@ th, td {
             // افزودن ردیف جدید با دکمه
             $('#addRowBtn').on('click', function() {
                 addNewRow();
+                autoSave();
+            });
+            
+            // اضافه کردن عملکرد دکمه پاک کردن همه ردیف‌ها
+            $('#clearAllRowsBtn').on('click', function() {
+                if (confirm('آیا از پاک کردن تمام ردیف‌ها اطمینان دارید؟')) {
+                    $('#tableBody').empty();
+                    // اضافه کردن یک ردیف خالی
+                    addNewRow();
+                    autoSave();
+                }
+            });
+            
+            // اضافه کردن عملکرد دکمه افزودن 30 ردیف
+            $('#add30RowsBtn').on('click', function() {
+                for (let i = 0; i < 30; i++) {
+                    addNewRow();
+                }
                 autoSave();
             });
             
@@ -991,7 +967,7 @@ th, td {
                     {s: {r: 0, c: 0}, e: {r: 0, c: 6}}, // سطر اول
                     {s: {r: 1, c: 0}, e: {r: 1, c: 6}}, // سطر دوم
                     {s: {r: 2, c: 0}, e: {r: 2, c: 6}}, // سطر سوم
-                    {s: {r: 3, c: 0}, e: {r: 3, c: 6}}  // سطر چهارму
+                    {s: {r: 3, c: 0}, e: {r: 3, c: 6}}  // سطر چهارم
                 ];
                 
                 // تنظیم استایل برای اکسل
@@ -1050,7 +1026,7 @@ th, td {
                                 }
                             }
                             
-                            // رنگ‌بندی متناوب برای سطرها
+                            // رنگ‌بندی متناوب для سطرها
                             if (R % 2 === 0) {
                                 if (!ws[cell_ref].s.fill) {
                                     ws[cell_ref].s.fill = {fgColor: {rgb: "F0F0F0"}};
@@ -1115,7 +1091,7 @@ th, td {
                             importedData.push([
                                 excelData[i][1] || '', // نام رشته
                                 excelData[i][2] || '', // شهر دانشگاه
-                                excelData[i][3] || '', // نیمسال - مقدار پیش‌فرض خالی
+                                excelData[i][3] || '', // نیمسال
                                 excelData[i][4] || '', // نام دانشگاه
                                 excelData[i][5] || '', // دوره تحصیلی
                                 excelData[i][6] || ''  // کد رشته محل
