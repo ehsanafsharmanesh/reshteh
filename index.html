@@ -366,6 +366,22 @@ th, td {
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             z-index: 1000;
         }
+
+        /* استایل برای ردیف‌های انتخاب شده */
+        .selected-row {
+            background-color: #d4edff !important;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+        }
+
+        .selected-row td {
+            border-color: #007bff !important;
+        }
+
+        /* بهبود نمایش برای حالت انتخاب */
+        #tableBody tr {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -394,6 +410,7 @@ th, td {
         <div class="instructions">
             <h4>راهنمای تکمیل فرم:</h4>
             <p>برای جابجایی ردیف‌ها، روی شماره ردیف کلیک کرده و نگه دارید و سپس ردیف را به موقعیت جدید بکشید.</p>
+            <p>برای انتخاب چند ردیف همزمان، روی ردیف‌ها کلیک کنید (با نگه داشتن клаید Ctrl می‌توانید چند ردیف را انتخاب کنید).</p>
             <p>در ستون "دوره تحصیلی" از حروف اختصاری استفاده کنید: ر=روزانه, ن/ش=نوبت دوم, پ/پر=پردیس, ا=آزاد, پی=پیام نور, غ=غیرانتفاعی, م=مجازی</p>
         </div>
 
@@ -404,6 +421,13 @@ th, td {
             <button id="importBtn" class="btn btn-secondary">📤 ورودی از اکسل</button>
             <button id="printBtn" class="btn">🖨 پرینت</button>
             <input type="file" id="fileInput" style="display: none;" accept=".xlsx, .xls">
+        </div>
+
+        <!-- دکمه های انتخاب چندگانه -->
+        <div class="buttons" style="margin-bottom: 10px;">
+            <button id="selectAllBtn" class="btn btn-secondary">انتخاب همه</button>
+            <button id="deselectAllBtn" class="btn btn-secondary">لغو انتخاب همه</button>
+            <button id="moveSelectedBtn" class="btn btn-info">جابجایی ردیف‌های انتخاب شده</button>
         </div>
 
         <div class="table-container print-section">
@@ -445,9 +469,9 @@ th, td {
                 'م': {text: 'مجازی', className: 'doreh-مجازی'}
             };
 
-            // ایجاد ردیف‌های اولیه (11 ردیف)
+            // ایجاد ردیف‌های اولیه (10 ردیف)
             function initializeTable() {
-                // اضافه کردن 11 ردیف اولیه
+                // اضافه کردن 10 ردیف اولیه
                 for (let i = 0; i < 10; i++) {
                     addNewRow();
                 }
@@ -463,6 +487,161 @@ th, td {
                 
                 // بارگذاری داده‌های ذخیره شده
                 loadSavedData();
+                
+                // فعال کردن انتخاب چندگانه
+                enableMultiSelect();
+            }
+            
+            // فعال کردن انتخاب چندگانه
+            function enableMultiSelect() {
+                // رویدادهای دکمه‌ها
+                $('#selectAllBtn').on('click', function() {
+                    $('#tableBody tr').addClass('selected-row');
+                    updateMoveButtonState();
+                });
+                
+                $('#deselectAllBtn').on('click', function() {
+                    $('#tableBody tr').removeClass('selected-row');
+                    updateMoveButtonState();
+                });
+                
+                $('#moveSelectedBtn').on('click', function() {
+                    moveSelectedRows();
+                });
+                
+                // رویداد کلیک روی ردیف برای انتخاب
+                $(document).on('click', '#tableBody tr', function(e) {
+                    // اگر روی دکمه کلیک شده، انتخاب نشود
+                    if ($(e.target).is('button') || $(e.target).is('input') || $(e.target).is('select')) {
+                        return;
+                    }
+                    
+                    // اگر کلید Ctrl فشار داده شده، چندگانه انتخاب کن
+                    if (e.ctrlKey || e.metaKey) {
+                        $(this).toggleClass('selected-row');
+                    } 
+                    // در غیر این صورت فقط این ردیف انتخاب شود
+                    else {
+                        $('#tableBody tr').removeClass('selected-row');
+                        $(this).addClass('selected-row');
+                    }
+                    
+                    updateMoveButtonState();
+                });
+            }
+            
+            // به روزرسانی وضعیت دکمه جابجایی
+            function updateMoveButtonState() {
+                const selectedCount = $('#tableBody tr.selected-row').length;
+                $('#moveSelectedBtn').text(selectedCount > 0 ? 
+                    `جابجایی ${selectedCount} ردیف انتخاب شده` : 
+                    'جابجایی ردیف‌های انتخاب شده');
+            }
+            
+            // جابجایی ردیف‌های انتخاب شده - نسخه اصلاحی
+            function moveSelectedRows() {
+                const selectedRows = $('#tableBody tr.selected-row');
+                if (selectedRows.length === 0) {
+                    alert('هیچ ردیفی انتخاب نشده است.');
+                    return;
+                }
+                
+                // ایجاد دیالوگ برای انتخاب موقعیت
+                const position = prompt(`لطفاً موقعیت جدید را وارد کنید (بین 1 تا ${$('#tableBody tr').length - selectedRows.length + 1}):`);
+                if (!position) return;
+                
+                const targetPosition = parseInt(position);
+                if (isNaN(targetPosition) || targetPosition < 1 || targetPosition > $('#tableBody tr').length - selectedRows.length + 1) {
+                    alert('موقعیت نامعتبر است.');
+                    return;
+                }
+                
+                // ذخیره داده‌های ردیف‌های انتخاب شده
+                const rowsData = [];
+                selectedRows.each(function() {
+                    const row = $(this);
+                    const periodCell = row.find('td').eq(5); // سلول دوره تحصیلی
+                    
+                    rowsData.push({
+                        major: row.find('.field-major').val() || '',
+                        city: row.find('.field-city').val() || '',
+                        semester: row.find('.field-semester').val() || '',
+                        university: row.find('.field-university').val() || '',
+                        period: row.find('.field-period').val() || '',
+                        code: row.find('.field-code').val() || '',
+                        periodClass: periodCell.attr('class') || '' // کلاس دوره تحصیلی
+                    });
+                });
+                
+                // حذف ردیف‌های انتخاب شده
+                selectedRows.remove();
+                
+                // درج ردیف‌ها در موقعیت جدید
+                const tableBody = $('#tableBody');
+                const allRows = tableBody.find('tr');
+                
+                if (targetPosition === 1) {
+                    // درج در ابتدا
+                    rowsData.forEach((data, index) => {
+                        const newRow = createRowFromData(data);
+                        if (index === 0) {
+                            newRow.prependTo(tableBody);
+                        } else {
+                            newRow.insertAfter(tableBody.find('tr').eq(index - 1));
+                        }
+                    });
+                } else if (targetPosition > allRows.length) {
+                    // درج در انتها
+                    rowsData.forEach((data) => {
+                        const newRow = createRowFromData(data);
+                        newRow.appendTo(tableBody);
+                    });
+                } else {
+                    // درج در موقعیت مشخص
+                    rowsData.forEach((data, index) => {
+                        const newRow = createRowFromData(data);
+                        if (index === 0) {
+                            newRow.insertBefore(allRows.eq(targetPosition - 1));
+                        } else {
+                            newRow.insertAfter(tableBody.find('tr').eq(targetPosition - 1 + index - 1));
+                        }
+                    });
+                }
+                
+                // به روزرسانی شماره ردیف‌ها
+                updateRowNumbers();
+                
+                // غیرفعال کردن انتخاب
+                $('#tableBody tr').removeClass('selected-row');
+                updateMoveButtonState();
+                
+                // ذخیره خودکار
+                autoSave();
+            }
+
+            // ایجاد ردیف جدید از داده‌های ذخیره شده
+            function createRowFromData(data) {
+                const newRow = $(`
+                    <tr class="resizable-row">
+                        <td class="row-number"></td>
+                        <td><input type="text" class="field-major form-control" placeholder="نام رشته" autocomplete="off" value="${data.major || ''}" /></td>
+                        <td><input type="text" class="field-city form-control" placeholder="شهر دانشگاه" autocomplete="off" value="${data.city || ''}" /></td>
+                        <td>
+                            <select class="field-semester form-control semester-cell">
+                                <option value="" ${data.semester === '' ? 'selected' : ''}>---</option>
+                                <option value="اول" ${data.semester === 'اول' ? 'selected' : ''}>اول</option>
+                                <option value="دوم" ${data.semester === 'دوم' ? 'selected' : ''}>دوم</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="field-university form-control" placeholder="نام دانشگاه" autocomplete="off" value="${data.university || ''}" /></td>
+                        <td class="${data.periodClass || ''}"><input type="text" class="field-period form-control" maxlength="2" autocomplete="off" placeholder="ر، ن، پ، ا، پی، غ، م" value="${data.period || ''}" /></td>
+                        <td><input type="text" class="field-code form-control" placeholder="کد رشته محل" autocomplete="off" value="${data.code || ''}" /></td>
+                        <td class="actions-column"><button class="btn btn-sm btn-warning clear-row">🧹</button></td>
+                        <td class="actions-column"><button class="btn btn-sm btn-danger remove-row">🗑️</button></td>
+                    </tr>
+                `);
+                
+                return newRow;
             }
             
             // افزودن ردیف جدید
@@ -511,7 +690,7 @@ th, td {
                 let isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
                 
                 $('#tableBody').sortable({
-                    items: "tr",
+                    items: "tr:not(.ui-sortable-helper)",
                     cursor: "move",
                     opacity: 0.7,
                     start: function(event, ui) {
@@ -519,6 +698,8 @@ th, td {
                         if (isTouchDevice) {
                             ui.item.addClass('touch-dragging');
                         }
+                        // غیرفعال کردن انتخاب در هنگام درگ
+                        ui.item.removeClass('selected-row');
                     },
                     stop: function(event, ui) {
                         ui.item.removeClass('dragging');
@@ -976,8 +1157,3 @@ th, td {
     </script>
 </body>
 </html>
-
-
-
-
-
